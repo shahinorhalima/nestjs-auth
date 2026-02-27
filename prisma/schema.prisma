@@ -1,0 +1,74 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mongodb"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  USER
+  ADMIN
+}
+
+model User {
+  id       String @id @default(auto()) @map("_id") @db.ObjectId
+  name     String
+  email    String @unique
+  phone    String @unique
+  password String
+  role     Role   @default(USER)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // relations
+  bookings Booking[]
+  buses    Bus[]
+  seats    Seat[]
+}
+
+model Booking {
+  id String @id @default(auto()) @map("_id") @db.ObjectId
+
+  date DateTime
+
+  userId String @db.ObjectId
+  user   User   @relation(fields: [userId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // relations
+}
+
+model Bus {
+  id        String @id @default(auto()) @map("_id") @db.ObjectId
+  busname   String
+  totalseat Int
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // relations
+  userId String @db.ObjectId
+  user   User   @relation(fields: [userId], references: [id])
+
+  busSeats Seat[]
+}
+
+model Seat {
+  id   String @id @default(auto()) @map("_id") @db.ObjectId
+  seat Int
+
+  busId  String @db.ObjectId
+  bus    Bus    @relation(fields: [busId], references: [id])
+  userId String @db.ObjectId
+  user   User   @relation(fields: [userId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // relations 
+}
