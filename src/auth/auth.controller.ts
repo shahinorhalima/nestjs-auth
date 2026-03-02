@@ -19,10 +19,34 @@ import { AuthGuard } from './auth.guard';
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
+  @Post('register')
+  async register(
+    @Body() dto: CreateAuthDto,
+    @Res({ passthrough: true }) res: any,
+  ) {
+    const user = this.authService.register(dto, res);
+    return res.json(user);
+  }
+
   @Post('login')
-  async login(@Body() createAuthDto: CreateAuthDto, @Res() res: any) {
+  async login(
+    @Body() createAuthDto: CreateAuthDto,
+    @Res({ passthrough: true }) res: any,
+  ) {
     const result = await this.authService.login(createAuthDto, res);
     return res.json(result);
+  }
+
+  @Post('refresh')
+  async refresh(@Body() body: { refreshToken: string }, @Res() res: any) {
+    const result = await this.authService.refreshAccessToken(body.refreshToken);
+    return res.json(result);
+  }
+
+  @Post('logout')
+  async logout(@Req() req: any, @Res() res: any) {
+    const userId = req.loginUser.id;
+    const result = await this.authService.logout(userId);
   }
 
   @UseGuards(AuthGuard)

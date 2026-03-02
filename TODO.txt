@@ -1,0 +1,30 @@
+  async refreshAccessToken(refreshToken: string) {
+    try {
+      // refresh token verify করুন
+      const decoded = await this.jwtService.verify(refreshToken);
+
+      // database-এ check করুন token match করে কিনা
+
+      const user = await this.prisma.user.findFirst({
+        where: { id: decoded.sub },
+      });
+
+      if (!user || user.refreshToken !== refreshToken) {
+        throw new UnauthorizedException('Invalid refresh token');
+      }
+
+      // নতুন access token generate করুন
+
+      const newAccessToken = await this.jwtService.sign(
+        { ...user },
+        { expiresIn: '15m' },
+      );
+
+      return {
+        message: 'Token refreshed',
+        accessToken: newAccessToken,
+      };
+    } catch (error) {
+      throw new UnauthorizedException('Invalid or expired refresh token');
+    }
+  }
